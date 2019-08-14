@@ -10,22 +10,27 @@
 
           <b-list-group>
             <b-list-group-item 
-              v-for="(answer, index) in answers" :key="index"
+              v-for="(answer, index) in shuffledAnswers" :key="index"
               @click.prevent="selectanswer(index)" 
-              :class="[selectedindex === index ? 'selected' : '']"
+              :class="[
+              !answered && selectedindex === index ? 'selected' : 
+              answered && correctIndex === index ? 'correct' : 
+              answered && selectedindex === index &&correctIndex !== index ? 'incorrect' : 
+              '' ]"
             >
               {{answer|decoder}}
             </b-list-group-item>
           </b-list-group>
 
-        <b-button variant="primary" 
+        <b-button class="submit" variant="primary" 
           @click="submitanswer"
+          :disabled="selectedindex === null || answered"
         >
 
         Submit
-        
+
         </b-button>
-        <b-button @click="next" variant="success" href="#" >
+        <b-button @click="next" variant="success"  >
           Next
         </b-button>
         
@@ -45,7 +50,9 @@ export default {
   data() {
     return {
       selectedindex: null,
-      shuffledAnswers: []
+      correctIndex: null,
+      shuffledAnswers: [],
+      answered: false
     }
   },
   computed: {
@@ -61,6 +68,7 @@ export default {
       handler () {
         this.selectedindex = null
         this.shuffleAnswers ()
+        this.answered = false
       }
     }
     
@@ -80,18 +88,21 @@ export default {
     selectanswer (index) {
       this.selectedindex=index    
   },
+ submitanswer () {
+    let isCorrect = false
+
+    if (this.selectedindex === this.correctIndex) {
+      isCorrect = true
+    }
+    this.answered = true
+    this.increment(isCorrect)
+  },
   shuffleAnswers () {
     let answers=[...this.CurrentQuestion.incorrect_answers, this.CurrentQuestion.correct_answer]
     this.shuffledAnswers = _.shuffle(answers)
+    this.correctIndex = this.shuffledAnswers.indexOf(this.CurrentQuestion.correct_answer)
   },
-  submitanswer () {
-    let isCorrect = false
-
-    if (this.selectedindex === correctindex) {
-      isCorrect = true
-    }
-    this.increment(isCorrect)
-  },
+  
   mounted () {
     this.shuffleAnswers()
   }
@@ -110,8 +121,11 @@ export default {
   .btn {
       margin-left: 10px;
   }
+  .submit:disabled {
+      background-color: black;
+  }
   .selected {
-      background-color: aquamarine;
+      background-color: lightskyblue;
   }
   .correct {
       background-color: lightgreen;
